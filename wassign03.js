@@ -13,12 +13,17 @@ var meetingsData = [];
 var addresses = [];
 
 //use JSON.parse() to read data into object
-var addresses = fs.readFileSync('/home/ubuntu/workspace/addresses.txt').toString().split(",,");
+var addresses = JSON.parse(fs.readFileSync('/home/ubuntu/workspace/addresses2.txt'));
 console.log(addresses);
 
 
 // eachSeries in the async module iterates over an array and operates on each item in the array in series
 // // calls for array and the function ot ogo over 
+function fixAddress (oldAddress) {
+    var newAddress = oldAddress.substring(0, oldAddress.indexOf(',')) + ' New York, NY,';
+    return newAddress;
+}
+
 
 async.eachSeries(addresses, function(value, callback) {
     var apiRequest = 'https://maps.googleapis.com/maps/api/geocode/json?address=' + value.split(' ').join('+') + '&key=' + apikey;
@@ -33,12 +38,12 @@ async.eachSeries(addresses, function(value, callback) {
             throw err;
         }
 
-        thisMeeting.latLong = JSON.parse(body).results[0].geometry.location; //.parse indicates that its an object 
+        // thisMeeting.latLong = JSON.parse(body).results[0].geometry.location; //.parse indicates that its an object 
         meetingsData.push(thisMeeting);
 
     });
     setTimeout(callback, 500);
 }, function() {
-    // console.log(meetingsData);
-    fs.writeFileSync('./aaMeetingsArray.txt', JSON.stringify(meetingsData));
+    //console.log(meetingsData);
+    fs.writeFileSync('./aaMeetingsArray2.txt', JSON.stringify(meetingsData));
 });

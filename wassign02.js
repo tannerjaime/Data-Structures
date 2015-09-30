@@ -22,25 +22,6 @@ $('table').each(function(i, elem) {
 });
 
 
-for (var i=0; i<addresses.length; i++){
-    addresses[i] = addresses[i] + ' New York, NY,';
-}
-console.log(addresses);
-
-
-
-
-// AIzaSyC_TtJWGQ31r5SRl2NeeLkpMg91keTnxFQ
-// https://maps.googleapis.com/maps/api/geocode/json?address=1600+Amphitheatre+Parkway,+Mountain+View,+CA&key=AIzaSyC_TtJWGQ31r5SRl2NeeLkpMg91keTnxFQ
-
-
-fs.writeFile("./addresses.txt", addresses, function(err) {
-if(err) {
-        console.log(err);
-  } 
-  else {
-    console.log("Output saved to /addressest.txt.");
-    }
-}); 
+fs.writeFileSync("./addresses3.txt", JSON.stringify(addresses));
 
 
