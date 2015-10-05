@@ -4,7 +4,7 @@ var fs = require('fs');
 
 // SETTING ENVIRONMENT VARIABLES (in Linux): 
 // export NEW_VAR="Content of NEW_VAR variable"
-// printenv | grep NEW_VAR
+// printenv | grep NEW_VARpi
 
 var apikey = process.env.API_KEY;
 // var URLtoParse = 
@@ -38,12 +38,12 @@ async.eachSeries(addresses, function(value, callback) {
             throw err;
         }
 
-        // thisMeeting.latLong = JSON.parse(body).results[0].geometry.location; //.parse indicates that its an object 
+        thisMeeting.latLong = JSON.parse(body).results[0].geometry.location; //.parse indicates that its an object 
         meetingsData.push(thisMeeting);
 
     });
     setTimeout(callback, 500);
 }, function() {
     //console.log(meetingsData);
-    fs.writeFileSync('./aaMeetingsArray2.txt', JSON.stringify(meetingsData));
+    fs.writeFileSync('./aaMeetingsArray3.txt', JSON.stringify(meetingsData));
 });
