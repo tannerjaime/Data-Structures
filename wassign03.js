@@ -26,7 +26,7 @@ function fixAddress (oldAddress) {
 
 
 async.eachSeries(addresses, function(value, callback) {
-    var apiRequest = 'https://maps.googleapis.com/maps/api/geocode/json?address=' + value.split(' ').join('+') + '&key=' + apikey;
+    var apiRequest = 'https://maps.googleapis.com/maps/api/geocode/json?address=' + fixAddress(value).split(' ').join('+') + '&key=' + apikey;
     var thisMeeting = new Object;
     thisMeeting.address = value;
 
