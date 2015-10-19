@@ -2,6 +2,7 @@ var fs = require('fs');
 var cheerio = require('cheerio');
 var request = require('request'); // npm install request
 var async = require('async'); // npm install async
+var MongoClient = require('mongodb').MongoClient; // npm install mongodb
 
 var apikey = process.env.API_KEY;
 var addressesFloors = []; //done
@@ -64,42 +65,51 @@ addresses = Array.prototype.concat.apply([], addresses);
 // ~~~~~~~~~ SCRAPING END
 // ~~~~~~~~~ CLEANING FUNCTION
 
-//function to clean meeting names 
-// function fixNames(oldName) {
-//     // if (oldName.indexOf(' - ') == -1) {
-//     //     console.log("no dash found.");
-//     // }
-//     // else {
-//     var indexed = oldName.indexOf('-');
-//     var firstPart = oldName.substr(0, (indexed - 1)).toUpperCase();
-//     var second = oldName.substr(indexed + 1, firstPart.length).toUpperCase();
-//     console.log("firstPark : " + firstPart + "   second" + second);
-//     if (oldName.indexOf("(:") = -1){
-//         oldName.splice("(");
-//     }
-//     else if (firstPart == second) {
-//         finished = firstPart;
-//     }
-//     else if (second == " ") {
-//         var finished = firstPart;
-//     }
-//     else {
-//         finished = oldName;
-//     }
+// function to clean meeting names 
+function fixNames(oldName) {
+    // if (oldName.indexOf(' - ') == -1) {
+    //     console.log("no dash found.");
+    // }
+    // else {
+    var indexed = oldName.indexOf('-');
+    oldName = oldName.replace(/\(:I+\)/g, "").trim();
+    oldName = oldName.replace(/\(:II+\)/g, "").trim();
+    oldName = oldName.replace(/\(I+\)/g, "").trim();
+    oldName = oldName.replace(/\(II+\)/g, "").trim();
+    var firstPart = oldName.substr(0, (indexed - 1)).toUpperCase().trim();
+    var second = oldName.substr(indexed + 1, firstPart.length).toUpperCase();
+    console.log("firstPart : " + firstPart + "|||   second" + second);
+    // oldName = oldName.replace(/\(:II+\)/g, "");
+    // if (oldName.indexOf("(:") != -1){
+    //     oldName = oldName.slice(0, oldName.indexOf("("));
+    // }
 
-//     return finished;
-//     // }
-// }
-// console.log(meetingName);
-// for (var i in meetingName){
-// meetingNameClean.push(fixNames(meetingName[i]));
-// }
+    if (firstPart == second) {
+        var finished = firstPart;
+    }
+    else if (second == "") {
+        finished = firstPart;
+    }
+    else {
+        finished = oldName;
+    }
 
+    return finished;
+    // }
+}
+console.log(meetingName);
+for (var i in meetingName) {
+    meetingNameClean.push(fixNames(meetingName[i]));
+}
+console.log(meetingNameClean);
 
 // ~~~~~~~~~ CLEANING FUNCTION END 
 
 // console.log(meetingName);
 // fs.writeFileSync("./addresses3.txt", JSON.stringify(addresses));
+
+
+
 
 
 //~~~~~~~~~~ APIS
@@ -115,7 +125,9 @@ function fixAddress (oldAddress) {
 // console.log(addresses);
 
 
-async.eachSeries(addresses, function(value, callback) {
+// forEachOf calls the function on all array elements IMMEDIATELY IN PARALLEL so google shuts you out
+// forEachOfSeries calls them nicely in order so the setTimeout() does what it's supposed to do
+async.forEachOfSeries(addresses, function(value, i, callback) {
     var apiRequest = 'https://maps.googleapis.com/maps/api/geocode/json?address=' + fixAddress(value).split(' ').join('+') + '&key=' + apikey;
     var thisMeeting = new Object;
     thisMeeting.address = value;
@@ -123,17 +135,43 @@ async.eachSeries(addresses, function(value, callback) {
     // var apiRequest = 'https://maps.googleapis.com/maps/api/geocode/json?address=' + cleanAddress + '&key=' + apikey;
     // console.log(cleanAddress[2]);
     console.log(apiRequest);
+
     request(apiRequest, function(err, resp, body) {
         if (err) {
+            console.log(body);
             throw err;
+
         }
 
         thisMeeting.latLong = JSON.parse(body).results[0].geometry.location; //.parse indicates that its an object 
         meetingsData.push(thisMeeting);
 
+        //~~~~~~~~~~ WRITE TO MONGO
+        var url = 'mongodb://localhost:27017/AAtest';
+
+        //retrieve
+        MongoClient.connect(url, function(err, db) {
+            if (err) {
+                return console.dir(err);
+            }
+
+            var collection = db.collection('meetingsArea2');
+
+            // THIS IS WHERE THE DOCUMENT(S) IS/ARE INSERTED TO MONGO:
+            //nsert batches. inset all doc in array as seperate docs 
+
+            collection.insert({address : meetingsData[i], addressWhole : addressesFloors[i], locationName : locationName[i], meetingName: meetingName[i], additionalInfo : additionalInfo[i], hours: hours[i], accessibility: wheelChair[i]});
+
+            db.close();
+
+        }); //MongoClient.connect
+
+        //~~~~~~~~~~ WRITE TO MONGO END 
     });
     setTimeout(callback, 500);
 }, function() {
     //console.log(meetingsData);
     fs.writeFileSync('./aaMeetingsArrayArea2.txt', JSON.stringify(meetingsData));
 });
+
+//~~~~~~~~~~ APIS END
