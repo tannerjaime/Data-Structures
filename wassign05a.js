@@ -71,13 +71,10 @@ function fixNames(oldName) {
     //     console.log("no dash found.");
     // }
     // else {
-    var indexed = oldName.indexOf('-');
-    oldName = oldName.replace(/\(:I+\)/g, "").trim();
-    oldName = oldName.replace(/\(:II+\)/g, "").trim();
-    oldName = oldName.replace(/\(I+\)/g, "").trim();
-    oldName = oldName.replace(/\(II+\)/g, "").trim();
-    var firstPart = oldName.substr(0, (indexed - 1)).toUpperCase().trim();
-    var second = oldName.substr(indexed + 1, firstPart.length).toUpperCase();
+    oldName = oldName.replace(/\(:?I+\)/g, "").trim();
+    var indexed = oldName.indexOf(' -');
+    var firstPart = oldName.substr(0, (indexed)).toUpperCase().trim();
+    var second = oldName.substr(indexed + 3 , firstPart.length).toUpperCase();
     console.log("firstPart : " + firstPart + "|||   second" + second);
     // oldName = oldName.replace(/\(:II+\)/g, "");
     // if (oldName.indexOf("(:") != -1){
@@ -91,7 +88,7 @@ function fixNames(oldName) {
         finished = firstPart;
     }
     else {
-        finished = oldName;
+        finished = firstPart;
     }
 
     return finished;
@@ -119,14 +116,7 @@ function fixAddress (oldAddress) {
     return newAddress;
 }
 
-// for (var j in addresses){
-// addresses.push(fixAddress(addresses[j]));
-// }
-// console.log(addresses);
 
-
-// forEachOf calls the function on all array elements IMMEDIATELY IN PARALLEL so google shuts you out
-// forEachOfSeries calls them nicely in order so the setTimeout() does what it's supposed to do
 async.forEachOfSeries(addresses, function(value, i, callback) {
     var apiRequest = 'https://maps.googleapis.com/maps/api/geocode/json?address=' + fixAddress(value).split(' ').join('+') + '&key=' + apikey;
     var thisMeeting = new Object;
@@ -147,7 +137,7 @@ async.forEachOfSeries(addresses, function(value, i, callback) {
         meetingsData.push(thisMeeting);
 
         //~~~~~~~~~~ WRITE TO MONGO
-        var url = 'mongodb://localhost:27017/AAtest';
+        var url = 'mongodb://localhost:27017/AAmanhattan';
 
         //retrieve
         MongoClient.connect(url, function(err, db) {
@@ -160,7 +150,7 @@ async.forEachOfSeries(addresses, function(value, i, callback) {
             // THIS IS WHERE THE DOCUMENT(S) IS/ARE INSERTED TO MONGO:
             //nsert batches. inset all doc in array as seperate docs 
 
-            collection.insert({address : meetingsData[i], addressWhole : addressesFloors[i], locationName : locationName[i], meetingName: meetingName[i], additionalInfo : additionalInfo[i], hours: hours[i], accessibility: wheelChair[i]});
+            collection.insert({address : meetingsData[i], addressWhole : addressesFloors[i], locationName : locationName[i], meetingName: meetingNameClean[i], additionalInfo : additionalInfo[i], hours: hours[i], accessibility: wheelChair[i]});
 
             db.close();
 
