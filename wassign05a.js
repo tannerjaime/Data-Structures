@@ -14,6 +14,9 @@ var additionalInfo = []; //done
 var hours = []; //done, needs cleaning
 var meetingNameClean = [];
 var meetingsData = [];
+var test = [];
+var days = []; var startTime = []; var meetingType = []; var specialInterest = [];
+
 
 
 
@@ -50,10 +53,14 @@ $('table').each(function(i, elem) {
             $(elem).find('td').eq(1).each(function(i, elem) {
                 //HOURS
                 hours.push($(elem).contents().text().trim());
+                days.push($(elem).find('b').eq(0).text().split());
+                test.push($(elem).find('b').eq(0).text());
             });
         });
     }
 });
+
+console.log(days);
 //after splitting twice above, merge nested array into one array
 addresses = Array.prototype.concat.apply([], addresses);
 //get rid of the (red door) directions
@@ -67,19 +74,13 @@ addresses = Array.prototype.concat.apply([], addresses);
 
 // function to clean meeting names 
 function fixNames(oldName) {
-    // if (oldName.indexOf(' - ') == -1) {
-    //     console.log("no dash found.");
-    // }
-    // else {
+
     oldName = oldName.replace(/\(:?I+\)/g, "").trim();
     var indexed = oldName.indexOf(' -');
     var firstPart = oldName.substr(0, (indexed)).toUpperCase().trim();
     var second = oldName.substr(indexed + 3 , firstPart.length).toUpperCase();
-    console.log("firstPart : " + firstPart + "|||   second" + second);
-    // oldName = oldName.replace(/\(:II+\)/g, "");
-    // if (oldName.indexOf("(:") != -1){
-    //     oldName = oldName.slice(0, oldName.indexOf("("));
-    // }
+    // console.log("firstPart : " + firstPart + "|||   second" + second);
+
 
     if (firstPart == second) {
         var finished = firstPart;
@@ -94,11 +95,24 @@ function fixNames(oldName) {
     return finished;
     // }
 }
-console.log(meetingName);
+
 for (var i in meetingName) {
     meetingNameClean.push(fixNames(meetingName[i]));
 }
-console.log(meetingNameClean);
+
+console.log(test);
+
+function fixHours(oldHours){
+    var currentMeeting = new Object;
+    
+    //want
+    // // times: {startTime: 
+    //         specialInterest: 
+    //         type: 
+    //         day: 
+}
+    
+}
 
 // ~~~~~~~~~ CLEANING FUNCTION END 
 
@@ -147,13 +161,18 @@ async.forEachOfSeries(addresses, function(value, i, callback) {
 
             var collection = db.collection('meetingsArea2');
 
-            // THIS IS WHERE THE DOCUMENT(S) IS/ARE INSERTED TO MONGO:
-            //nsert batches. inset all doc in array as seperate docs 
+            // THIS IS WHERE THE DOCUMENT(S) WHERE INSERTED TO MONGO:
+            //commented out for search queries 
 
-            collection.insert({address : meetingsData[i], addressWhole : addressesFloors[i], locationName : locationName[i], meetingName: meetingNameClean[i], additionalInfo : additionalInfo[i], hours: hours[i], accessibility: wheelChair[i]});
+            // collection.insert({address : meetingsData[i], addressWhole : addressesFloors[i], locationName : locationName[i], meetingName: meetingNameClean[i], additionalInfo : additionalInfo[i], hours: hours[i], accessibility: wheelChair[i]});
 
             db.close();
-
+            
+              collection.aggregate(
+                  
+                  
+                  )
+            
         }); //MongoClient.connect
 
         //~~~~~~~~~~ WRITE TO MONGO END 
