@@ -11,11 +11,12 @@ var locationName = []; //done
 var meetingName = []; //done
 var wheelChair = []; //done
 var additionalInfo = []; //done 
-var hours = []; //done, needs cleaning
+var hours = [];
+var hoursObj = new Object; //done, needs cleaning
 var meetingNameClean = [];
 var meetingsData = [];
 var test = [];
-var days = []; var startTime = []; var meetingType = []; var specialInterest = [];
+
 
 
 
@@ -50,17 +51,52 @@ $('table').each(function(i, elem) {
                 additionalInfo.push($(elem).find('div').text().trim());
             });
             //COLUMN 2
+            //COLUMN 2
             $(elem).find('td').eq(1).each(function(i, elem) {
                 //HOURS
                 hours.push($(elem).contents().text().trim());
-                days.push($(elem).find('b').eq(0).text().split());
-                test.push($(elem).find('b').eq(0).text());
+
             });
         });
     }
 });
 
-console.log(days);
+for (var j in hours) {
+    hours[j] = hours[j].replace(/[ \t]+/g, " ");
+    hours[j] = hours[j].replace(/[\r\n|\n]/g, " ");
+    hours[j] = hours[j].split("           ");
+    for (var q in hours[j]) {
+        hours[j][q] = hours[j][q].trim();
+    }
+}
+
+function splitHours(oldHours) {
+    var beginFrom = oldHours.indexOf(oldHours.match("From"));
+    var meetingType = oldHours.substr(oldHours.indexOf(oldHours.match("Type")) + 5, 2);
+    var startTime = oldHours.substr(beginFrom + 5, 8);
+    var days = oldHours.substring(0, beginFrom);
+    if (oldHours.indexOf('Interest') != -1) {
+        var specialInterest = oldHours.substr(oldHours.indexOf(oldHours.match("Interest")) + 8);
+    }
+    else {
+        specialInterest = null;
+    }
+
+    return specialInterest;
+}
+
+
+for (var i in hours) {
+    // hoursObj.times = hours[i];
+    test.push(splitHours(hours[i]));
+    // console.log(hours[i]);
+}
+// console.log(hoursObj.times);
+
+// console.log(test);
+console.log(hours);
+
+
 //after splitting twice above, merge nested array into one array
 addresses = Array.prototype.concat.apply([], addresses);
 //get rid of the (red door) directions
@@ -78,7 +114,7 @@ function fixNames(oldName) {
     oldName = oldName.replace(/\(:?I+\)/g, "").trim();
     var indexed = oldName.indexOf(' -');
     var firstPart = oldName.substr(0, (indexed)).toUpperCase().trim();
-    var second = oldName.substr(indexed + 3 , firstPart.length).toUpperCase();
+    var second = oldName.substr(indexed + 3, firstPart.length).toUpperCase();
     // console.log("firstPart : " + firstPart + "|||   second" + second);
 
 
@@ -100,30 +136,29 @@ for (var i in meetingName) {
     meetingNameClean.push(fixNames(meetingName[i]));
 }
 
-console.log(test);
 
 function fixHours(oldHours){
     var currentMeeting = new Object;
-    
+
     //want
     // // times: {startTime: 
     //         specialInterest: 
     //         type: 
     //         day: 
 }
-    
+
 }
 
-// ~~~~~~~~~ CLEANING FUNCTION END 
+~~~~~~~~~ CLEANING FUNCTION END 
 
-// console.log(meetingName);
-// fs.writeFileSync("./addresses3.txt", JSON.stringify(addresses));
-
-
+console.log(meetingName);
+fs.writeFileSync("./addresses3.txt", JSON.stringify(addresses));
 
 
 
-//~~~~~~~~~~ APIS
+
+
+~~~~~~~~~~ APIS
 
 function fixAddress (oldAddress) {
     var newAddress = oldAddress + ', New York, NY,';
@@ -167,12 +202,12 @@ async.forEachOfSeries(addresses, function(value, i, callback) {
             // collection.insert({address : meetingsData[i], addressWhole : addressesFloors[i], locationName : locationName[i], meetingName: meetingNameClean[i], additionalInfo : additionalInfo[i], hours: hours[i], accessibility: wheelChair[i]});
 
             db.close();
-            
+
               collection.aggregate(
-                  
-                  
+
+
                   )
-            
+
         }); //MongoClient.connect
 
         //~~~~~~~~~~ WRITE TO MONGO END 
