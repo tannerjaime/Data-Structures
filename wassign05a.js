@@ -15,11 +15,7 @@ var hours = [];
 var hoursObj = new Object; //done, needs cleaning
 var meetingNameClean = [];
 var meetingsData = [];
-var test = [];
-
-
-
-
+var hoursSplit = []; var testf = [];
 
 // ~~~~~~~~~ SCRAPING
 
@@ -61,6 +57,7 @@ $('table').each(function(i, elem) {
     }
 });
 
+//clean up hours text
 for (var j in hours) {
     hours[j] = hours[j].replace(/[ \t]+/g, " ");
     hours[j] = hours[j].replace(/[\r\n|\n]/g, " ");
@@ -70,31 +67,36 @@ for (var j in hours) {
     }
 }
 
+//function to split hours and push into object
 function splitHours(oldHours) {
     var beginFrom = oldHours.indexOf(oldHours.match("From"));
     var meetingType = oldHours.substr(oldHours.indexOf(oldHours.match("Type")) + 5, 2);
     var startTime = oldHours.substr(beginFrom + 5, 8);
-    var days = oldHours.substring(0, beginFrom);
+    var days = oldHours.substring(0, beginFrom - 2);
     if (oldHours.indexOf('Interest') != -1) {
         var specialInterest = oldHours.substr(oldHours.indexOf(oldHours.match("Interest")) + 8);
     }
     else {
         specialInterest = null;
     }
-
-    return specialInterest;
+    return {
+        "day" : days,
+        "hours" : startTime, 
+        "meetingType" : meetingType,
+        "specialInterests" : specialInterest
+    };
 }
 
-
+//call splitHours
 for (var i in hours) {
-    // hoursObj.times = hours[i];
-    test.push(splitHours(hours[i]));
-    // console.log(hours[i]);
+    for (var a in hours[i]){
+    hours[i][a] = splitHours(hours[i][a]);
+    }
+    hoursSplit.push(hours[i]);
 }
-// console.log(hoursObj.times);
 
-// console.log(test);
-console.log(hours);
+console.log(hoursSplit.length);
+
 
 
 //after splitting twice above, merge nested array into one array
@@ -110,13 +112,10 @@ addresses = Array.prototype.concat.apply([], addresses);
 
 // function to clean meeting names 
 function fixNames(oldName) {
-
     oldName = oldName.replace(/\(:?I+\)/g, "").trim();
     var indexed = oldName.indexOf(' -');
     var firstPart = oldName.substr(0, (indexed)).toUpperCase().trim();
     var second = oldName.substr(indexed + 3, firstPart.length).toUpperCase();
-    // console.log("firstPart : " + firstPart + "|||   second" + second);
-
 
     if (firstPart == second) {
         var finished = firstPart;
@@ -129,7 +128,7 @@ function fixNames(oldName) {
     }
 
     return finished;
-    // }
+
 }
 
 for (var i in meetingName) {
