@@ -15,7 +15,7 @@ var hours = [];
 var hoursObj = new Object; //done, needs cleaning
 var meetingNameClean = [];
 var meetingsData = [];
-var hoursSplit = []; var testf = [];
+var hoursSplit = [];
 
 // ~~~~~~~~~ SCRAPING
 
@@ -57,6 +57,10 @@ $('table').each(function(i, elem) {
     }
 });
 
+// ~~~~~~~~~ SCRAPING END
+// ~~~~~~~~~ CLEANING FUNCTION
+
+
 //clean up hours text
 for (var j in hours) {
     hours[j] = hours[j].replace(/[ \t]+/g, " ");
@@ -81,7 +85,7 @@ function splitHours(oldHours) {
     }
     return {
         "day" : days,
-        "hours" : startTime, 
+        "startTime" : startTime, 
         "meetingType" : meetingType,
         "specialInterests" : specialInterest
     };
@@ -95,9 +99,6 @@ for (var i in hours) {
     hoursSplit.push(hours[i]);
 }
 
-console.log(hoursSplit.length);
-
-
 
 //after splitting twice above, merge nested array into one array
 addresses = Array.prototype.concat.apply([], addresses);
@@ -107,8 +108,6 @@ addresses[11] = addresses[11].split('(', 1);
 addresses = Array.prototype.concat.apply([], addresses);
 
 
-// ~~~~~~~~~ SCRAPING END
-// ~~~~~~~~~ CLEANING FUNCTION
 
 // function to clean meeting names 
 function fixNames(oldName) {
@@ -116,105 +115,96 @@ function fixNames(oldName) {
     var indexed = oldName.indexOf(' -');
     var firstPart = oldName.substr(0, (indexed)).toUpperCase().trim();
     var second = oldName.substr(indexed + 3, firstPart.length).toUpperCase();
-
+    console.log("OLD: " + oldName);
     if (firstPart == second) {
         var finished = firstPart;
     }
     else if (second == "") {
         finished = firstPart;
     }
-    else {
+    else if (firstPart.indexOf(second) != -1){
         finished = firstPart;
+    }
+    else {
+        finished = oldName;
     }
 
     return finished;
-
 }
 
 for (var i in meetingName) {
     meetingNameClean.push(fixNames(meetingName[i]));
 }
 
+console.log(meetingNameClean);
 
-function fixHours(oldHours){
-    var currentMeeting = new Object;
+// ~~~~~~~~~ CLEANING FUNCTION END 
 
-    //want
-    // // times: {startTime: 
-    //         specialInterest: 
-    //         type: 
-    //         day: 
-}
-
-}
-
-~~~~~~~~~ CLEANING FUNCTION END 
-
-console.log(meetingName);
-fs.writeFileSync("./addresses3.txt", JSON.stringify(addresses));
+// console.log(meetingName);
+// fs.writeFileSync("./addresses3.txt", JSON.stringify(addresses));
 
 
 
 
 
-~~~~~~~~~~ APIS
+// // ~~~~~~~~~~ APIS
 
-function fixAddress (oldAddress) {
-    var newAddress = oldAddress + ', New York, NY,';
-    return newAddress;
-}
-
-
-async.forEachOfSeries(addresses, function(value, i, callback) {
-    var apiRequest = 'https://maps.googleapis.com/maps/api/geocode/json?address=' + fixAddress(value).split(' ').join('+') + '&key=' + apikey;
-    var thisMeeting = new Object;
-    thisMeeting.address = value;
-
-    // var apiRequest = 'https://maps.googleapis.com/maps/api/geocode/json?address=' + cleanAddress + '&key=' + apikey;
-    // console.log(cleanAddress[2]);
-    console.log(apiRequest);
-
-    request(apiRequest, function(err, resp, body) {
-        if (err) {
-            console.log(body);
-            throw err;
-
-        }
-
-        thisMeeting.latLong = JSON.parse(body).results[0].geometry.location; //.parse indicates that its an object 
-        meetingsData.push(thisMeeting);
-
-        //~~~~~~~~~~ WRITE TO MONGO
-        var url = 'mongodb://localhost:27017/AAmanhattan';
-
-        //retrieve
-        MongoClient.connect(url, function(err, db) {
-            if (err) {
-                return console.dir(err);
-            }
-
-            var collection = db.collection('meetingsArea2');
-
-            // THIS IS WHERE THE DOCUMENT(S) WHERE INSERTED TO MONGO:
-            //commented out for search queries 
-
-            // collection.insert({address : meetingsData[i], addressWhole : addressesFloors[i], locationName : locationName[i], meetingName: meetingNameClean[i], additionalInfo : additionalInfo[i], hours: hours[i], accessibility: wheelChair[i]});
-
-            db.close();
-
-              collection.aggregate(
+// function fixAddress (oldAddress) {
+//     var newAddress = oldAddress + ', New York, NY,';
+//     return newAddress;
+// }
 
 
-                  )
+// async.forEachOfSeries(addresses, function(value, i, callback) {
+//     var apiRequest = 'https://maps.googleapis.com/maps/api/geocode/json?address=' + fixAddress(value).split(' ').join('+') + '&key=' + apikey;
+//     var thisMeeting = new Object;
+//     thisMeeting.address = value;
 
-        }); //MongoClient.connect
+//     // var apiRequest = 'https://maps.googleapis.com/maps/api/geocode/json?address=' + cleanAddress + '&key=' + apikey;
+//     // console.log(cleanAddress[2]);
+//     console.log(apiRequest);
 
-        //~~~~~~~~~~ WRITE TO MONGO END 
-    });
-    setTimeout(callback, 500);
-}, function() {
-    //console.log(meetingsData);
-    fs.writeFileSync('./aaMeetingsArrayArea2.txt', JSON.stringify(meetingsData));
-});
+//     request(apiRequest, function(err, resp, body) {
+//         if (err) {
+//             console.log(body);
+//             throw err;
 
-//~~~~~~~~~~ APIS END
+//         }
+
+//         thisMeeting.latLong = JSON.parse(body).results[0].geometry.location; //.parse indicates that its an object 
+//         meetingsData.push(thisMeeting);
+
+//         //~~~~~~~~~~ WRITE TO MONGO
+//         var url = 'mongodb://localhost:27017/AAtest';
+
+//         //retrieve
+//         MongoClient.connect(url, function(err, db) {
+//             if (err) {
+//                 return console.dir(err);
+//             }
+
+//             var collection = db.collection('meetingsArea2');
+
+//             // THIS IS WHERE THE DOCUMENT(S) WHERE INSERTED TO MONGO:
+//             //commented out for search queries 
+
+//             collection.insert({address : meetingsData[i], addressWhole : addressesFloors[i], locationName : locationName[i], meetingName: meetingNameClean[i], additionalInfo : additionalInfo[i], hours: hoursSplit[i], accessibility: wheelChair[i]});
+
+//             db.close();
+
+//               collection.aggregate(
+
+
+//                   )
+
+//         }); //MongoClient.connect
+
+//         //~~~~~~~~~~ WRITE TO MONGO END 
+//     });
+//     setTimeout(callback, 500);
+// }, function() {
+//     //console.log(meetingsData);
+//     fs.writeFileSync('./aaMeetingsArrayArea2.txt', JSON.stringify(meetingsData));
+// });
+
+// //~~~~~~~~~~ APIS END
