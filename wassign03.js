@@ -3,7 +3,7 @@ var async = require('async'); // npm install async
 var fs = require('fs');
 
 // SETTING ENVIRONMENT VARIABLES (in Linux): 
-// export NEW_VAR="Content of NEW_VAR variable"
+// export API_KEY="Content of NEW_VAR variable"
 // printenv | grep NEW_VARpi
 
 var apikey = process.env.API_KEY;
@@ -47,3 +47,4 @@ async.eachSeries(addresses, function(value, callback) {
     //console.log(meetingsData);
     fs.writeFileSync('./aaMeetingsArray3.txt', JSON.stringify(meetingsData));
 });
+

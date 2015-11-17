@@ -6,6 +6,6 @@ request('http://www.nyintergroup.org/meetinglist/meetinglist.cfm?zone=02&borough
     fs.writeFileSync('/home/ubuntu/workspace/data/aameetinglist02M.txt', body); // gunna write it into a text file 
   }
   else {console.error('request failed')}
-})
+});
 
 //also had to mkdir data to have a place to send the text file too. 

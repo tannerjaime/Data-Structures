@@ -22,6 +22,7 @@ $('table').each(function(i, elem) {
 });
 
 
-fs.writeFileSync("./addresses3.txt", JSON.stringify(addresses));
+// fs.writeFileSync("./addresses3.txt", JSON.stringify(addresses));
+console.log(addresses);
 
 
