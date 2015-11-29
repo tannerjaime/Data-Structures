@@ -77,43 +77,54 @@ function splitHours(oldHours) {
     var meetingType = oldHours.substr(oldHours.indexOf(oldHours.match("Type")) + 5, 2);
     var startHour = oldHours.substr(beginFrom + 4, 2);
     var startMinute = oldHours.substr(beginFrom + 7, 2);
+    var pm = oldHours.substr(beginFrom + 10, 2);
+    
 
 
     startHour = parseInt(startHour);
     startMinute = parseInt(startMinute);
-    var days = oldHours.substring(0, beginFrom - 2);
+    var days = oldHours.substring(0, beginFrom - 1);
+    if (pm == ' P' || pm == "PM"){
+        startHour = startHour + 12;
+        var amPM = "PM";
+    } else {
+        amPM = "AM";
+    }
+    console.log(amPM);
     if (oldHours.indexOf('Interest') != -1) {
         var specialInterest = oldHours.substr(oldHours.indexOf(oldHours.match("Interest")) + 8);
     }
     else {
         specialInterest = null;
     }
-    if (days == "Monday") {
+    if (days == "Mondays") {
         days = 1;
     }
-    else if (days == "Tuesday") {
+    else if (days == "Tuesdays") {
         days = 2;
     }
-    else if (days == "Wednesday") {
+    else if (days == "Wednesdays") {
         days = 3;
     }
-    else if (days == "Thursday") {
+    else if (days == "Thursdays") {
         days = 4;
     }
-    else if (days == "Friday") {
+    else if (days == "Fridays") {
         days = 5;
     }
-    else if (days == "Saturday") {
+    else if (days == "Saturdays" || days == "s") {
         days = 6;
     }
-    else if (days == "Sunday") {
-        days = 7;
+    else if (days == "Sundays") {
+        days = 0;
     }
 
+  
     return {
         "day": days,
         "startHour": startHour,
         "startMinute": startMinute,
+        "amPM": amPM,
         "meetingType": meetingType,
         "specialInterests": specialInterest
     };
@@ -125,6 +136,7 @@ for (var i in hours) {
         hours[i][a] = splitHours(hours[i][a]);
     }
     hoursSplit.push(hours[i]);
+    
 }
 
 
@@ -143,7 +155,6 @@ function fixNames(oldName) {
     var indexed = oldName.indexOf(' -');
     var firstPart = oldName.substr(0, (indexed)).toUpperCase().trim();
     var second = oldName.substr(indexed + 3, firstPart.length).toUpperCase();
-
 
     var lastHalfCheck1 = firstPart.substr((firstPart.length) - 10, 10).toUpperCase();
     var firstHalfCheck1 = firstPart.substr(0, 10).toUpperCase();
@@ -190,6 +201,7 @@ function fixAddress(oldAddress) {
     var newAddress = oldAddress + ', New York, NY,';
     return newAddress;
 }
+
 
 
 async.forEachOfSeries(addresses, function(value, i, callback) {
@@ -261,7 +273,7 @@ async.forEachOfSeries(addresses, function(value, i, callback) {
     fs.writeFileSync('./aaMeetingsArrayArea2.txt', JSON.stringify(data));
 });
 
-//~~~~~~~~~~ APIS END
+// ~~~~~~~~~~ APIS END
 // ~~~~~~~~~CLEANING FUNCTION END
 
-// fs.writeFileSync("./addresses3.txt", JSON.stringify(addresses));
+fs.writeFileSync("./addresses3.txt", JSON.stringify(addresses));

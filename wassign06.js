@@ -42,12 +42,50 @@ MongoClient.connect(url, function(err, db) {
         }, {
             $match: {
                 "cumulative": {
-                    $gte: 2580,
-                    $lt: 3120
+                    $gte: 4015,
+                    $lt: 4560
                 }
             }
         }
-    ].toArray();
-    db.close();
 
-}); //MongoClient.connect
+    ]).toArray(function(err, docs) {
+        if (err) {
+            console.log(err);
+        }
+        else {
+            var cleaned = docs;
+            // console.log(JSON.stringify(docs));
+            for (var i = 0; i < cleaned.length; i++) {
+                if (cleaned[i].hours.day == 0) {
+                    cleaned[i].hours.day = "Sundays";
+                }
+                else if (cleaned[i].hours.day == 1) {
+                    cleaned[i].hours.day = "Mondays";
+                }
+                else if (cleaned[i].hours.day == 2) {
+                    cleaned[i].hours.day = "Tuesdays";
+                }
+                else if (cleaned[i].hours.day == 3) {
+                    cleaned[i].hours.day = "Wednesdays";
+                }
+                else if (cleaned[i].hours.day == 4) {
+                    cleaned[i].hours.day = "Thursdays";
+                }
+                else if (cleaned[i].hours.day == 4) {
+                    cleaned[i].hours.day = "Fridays";
+                } else {
+                    cleaned[i].hours.day = "Saturdays";                   
+                }
+                console.log(JSON.stringify(cleaned[i], null, 4));
+                console.log('');
+            }
+            // for (var i=0; i < docs.length; i++) {
+            //     console.log(JSON.stringify(docs[i], null, 4));
+            //     console.log('');
+            // }
+        }
+        db.close();
+
+    });
+
+});
