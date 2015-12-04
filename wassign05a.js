@@ -16,12 +16,22 @@ var data = []; //done, needs cleaning
 var meetingNameClean = [];
 var meetingsData = [];
 var hoursSplit = [];
-
+var cleanAdd = [];
+var fileContent;
 // ~~~~~~~~~ SCRAPING
 
 //making request for the content
-var fileContent = fs.readFileSync('/home/ubuntu/workspace/data/aameetinglist02M.txt');
-var $ = cheerio.load(fileContent);
+var website = "http://www.nyintergroup.org/meetinglist/meetinglist.cfm?searchstr=&borough=M&zone=Zone&zipcode=Zip+Code&day=&StartTime=&EndTime=&meetingtype=&SpecialInterest=&Go=Go";
+request(website, function(error, response, body) { //we can expect to possiblt get an error, response, and body, derived from documentation for request
+    if (!error && response.statusCode == 200) {
+        fileContent = fs.writeFileSync('/home/ubuntu/workspace/data/allManhattanWebInfo.txt', body); // gunna write it into a text file 
+    }
+    else {
+        console.error('request failed')
+    }
+});
+        var $ = cheerio.load(fileContent);
+
 
 // COLUMN 1
 $('table').each(function(i, elem) {
@@ -76,21 +86,22 @@ function splitHours(oldHours) {
     var beginFrom = oldHours.indexOf(oldHours.match("From"));
     var meetingType = oldHours.substr(oldHours.indexOf(oldHours.match("Type")) + 5, 2);
     var startHour = oldHours.substr(beginFrom + 4, 2);
-    var startMinute = oldHours.substr(beginFrom + 7, 2);
+    var wholeTime = oldHours.substr(beginFrom + 4, 9);
     var pm = oldHours.substr(beginFrom + 10, 2);
-    
+
 
 
     startHour = parseInt(startHour);
-    startMinute = parseInt(startMinute);
+    // wholeTime = parseString(wholeTime);
     var days = oldHours.substring(0, beginFrom - 1);
-    if (pm == ' P' || pm == "PM"){
+    if (pm == ' P' || pm == "PM") {
         startHour = startHour + 12;
         var amPM = "PM";
-    } else {
+    }
+    else {
         amPM = "AM";
     }
-    console.log(amPM);
+
     if (oldHours.indexOf('Interest') != -1) {
         var specialInterest = oldHours.substr(oldHours.indexOf(oldHours.match("Interest")) + 8);
     }
@@ -119,11 +130,11 @@ function splitHours(oldHours) {
         days = 0;
     }
 
-  
+
     return {
         "day": days,
         "startHour": startHour,
-        "startMinute": startMinute,
+        "wholeTime": wholeTime,
         "amPM": amPM,
         "meetingType": meetingType,
         "specialInterests": specialInterest
@@ -136,17 +147,25 @@ for (var i in hours) {
         hours[i][a] = splitHours(hours[i][a]);
     }
     hoursSplit.push(hours[i]);
-    
+
 }
 
-
-//after splitting twice above, merge nested array into one array
+// //after splitting twice above, merge nested array into one array
 addresses = Array.prototype.concat.apply([], addresses);
-//get rid of the (red door) directions
-addresses[11] = addresses[11].split('(', 1);
-//caused addresss[11] to be nestd again, so merge again
-addresses = Array.prototype.concat.apply([], addresses);
+// //get rid of the (red door) directions
+// addresses[11] = addresses[11].split('(', 1);
+// //caused addresss[11] to be nestd again, so merge again
+// addresses = Array.prototype.concat.apply([], addresses);
 
+function fixAddress(oldAddress) {
+
+    if (oldAddress == "83 Christopher Street (Red Door") {
+        return "83 CHristopher Street";
+    }
+    else {
+        return oldAddress;
+    }
+}
 
 
 // function to clean meeting names 
@@ -189,7 +208,10 @@ function fixNames(oldName) {
 for (var i in meetingName) {
     meetingNameClean.push(fixNames(meetingName[i]));
 }
-
+for (var i in addresses) {
+    // console.log(addresses[i]);
+    cleanAdd.push(fixAddress(addresses[i]));
+}
 
 // ~~~~~~~~~ CLEANING FUNCTION END 
 
@@ -224,7 +246,7 @@ async.forEachOfSeries(addresses, function(value, i, callback) {
         meetingsData.push(thisMeeting.latLong);
 
         //~~~~~~~~~~ WRITE TO MONGO
-        var url = 'mongodb://localhost:27017/AAmanhattan';
+        var url = 'mongodb://localhost:27017/AAmeetings';
 
         //retrieve
         MongoClient.connect(url, function(err, db) {
@@ -232,7 +254,7 @@ async.forEachOfSeries(addresses, function(value, i, callback) {
                 return console.dir(err);
             }
 
-            var collection = db.collection('section2');
+            var collection = db.collection('manhattan');
 
             // THIS IS WHERE THE DOCUMENT(S) WHERE INSERTED TO MONGO:
             //commented out for search queries 
@@ -242,18 +264,18 @@ async.forEachOfSeries(addresses, function(value, i, callback) {
                 meetingName: meetingNameClean[i],
                 address: thisMeeting.address,
                 addressWhole: addressesFloors[i],
-                latlong : thisMeeting.latLong,
+                latlong: thisMeeting.latLong,
                 additionalInfo: additionalInfo[i],
                 hours: hoursSplit[i],
                 accessibility: wheelChair[i]
             });
-            
+
             data = ({
                 locationName: locationName[i],
                 meetingName: meetingNameClean[i],
                 address: thisMeeting.address,
                 addressWhole: addressesFloors[i],
-                latlong : thisMeeting.latLong,
+                latlong: thisMeeting.latLong,
                 additionalInfo: additionalInfo[i],
                 hours: hoursSplit[i],
                 accessibility: wheelChair[i]
@@ -264,7 +286,7 @@ async.forEachOfSeries(addresses, function(value, i, callback) {
 
             )
         }); //MongoClient.connect
-        
+
         //~~~~~~~~~~ WRITE TO MONGO END 
     });
     setTimeout(callback, 500);
