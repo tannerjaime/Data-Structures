@@ -1,38 +1,48 @@
+/*
+AA MEETINGS OF MANHATTAN
+Jaime Tanner 
+
+Install Following Node Modules: 
+request
+cheerio
+async
+mongodb
+*/
+
 var fs = require('fs');
 var cheerio = require('cheerio');
-var request = require('request'); // npm install request
-var async = require('async'); // npm install async
-var MongoClient = require('mongodb').MongoClient; // npm install mongodb
+var request = require('request'); 
+var async = require('async'); 
+var MongoClient = require('mongodb').MongoClient; 
+
 
 var apikey = process.env.API_KEY;
-var addressesFloors = []; //done
-var addresses = []; //done
-var locationName = []; //done
-var meetingName = []; //done
-var wheelChair = []; //done
-var additionalInfo = []; //done 
+var addressesFloors = []; 
+var addresses = []; 
+var locationName = []; 
+var meetingName = []; 
+var wheelChair = []; 
+var additionalInfo = []; 
 var hours = [];
-var data = []; //done, needs cleaning
+var data = []; 
 var meetingNameClean = [];
 var meetingsData = [];
 var hoursSplit = [];
 var cleanAdd = [];
 
-// ~~~~~~~~~ SCRAPING
+/*------------web scraping---------*/
 
-//making request for the content
+//making request for content
 var fileContent = fs.readFileSync('/home/ubuntu/workspace/data/allManhattanWebInfo.txt');
 var $ = cheerio.load(fileContent);
 
 
-
-// COLUMN 1
 $('table').each(function(i, elem) {
     //if the table has a cellpadding of 5
     if ($(elem).attr("cellpadding") == '5') {
         //for every row
         $(elem).find('tr').each(function(i, elem) {
-            //COLUMN 1
+            //Address/Location 
             $(elem).find('td').eq(0).each(function(i, elem) {
                 //ADDRESSES WITH FLOOR DETAILS
                 //log all the html, but split at the the <br>, taking the 3rd item from the index
@@ -49,10 +59,8 @@ $('table').each(function(i, elem) {
                 //ADDITIONAL NOTES
                 additionalInfo.push($(elem).find('div').text().trim());
             });
-            //COLUMN 2
-            //COLUMN 2
+            //Hours
             $(elem).find('td').eq(1).each(function(i, elem) {
-                //HOURS
                 hours.push($(elem).contents().text().trim());
 
             });
@@ -60,11 +68,8 @@ $('table').each(function(i, elem) {
     }
 });
 
-// ~~~~~~~~~ SCRAPING END
-// ~~~~~~~~~ CLEANING FUNCTION
+/*------------cleaning---------*/
 
-
-//clean up hours text
 for (var j in hours) {
     hours[j] = hours[j].replace(/[ \t]+/g, " ");
     hours[j] = hours[j].replace(/[\r\n|\n]/g, " ");
@@ -82,10 +87,7 @@ function splitHours(oldHours) {
     var wholeTime = oldHours.substr(beginFrom + 4, 9);
     var pm = oldHours.substr(beginFrom + 10, 2);
 
-
-
     startHour = parseInt(startHour);
-    // wholeTime = parseString(wholeTime);
     var days = oldHours.substring(0, beginFrom - 1);
     if (pm == ' P' || pm == "PM") {
         startHour = startHour + 12;
@@ -123,7 +125,6 @@ function splitHours(oldHours) {
         days = 0;
     }
 
-
     return {
         "day": days,
         "startHour": startHour,
@@ -143,15 +144,9 @@ for (var i in hours) {
 
 }
 
-// //after splitting twice above, merge nested array into one array
 addresses = Array.prototype.concat.apply([], addresses);
-// //get rid of the (red door) directions
-// addresses[11] = addresses[11].split('(', 1);
-// //caused addresss[11] to be nestd again, so merge again
-// addresses = Array.prototype.concat.apply([], addresses);
 
 function fixAddress(oldAddress) {
-
 if (oldAddress == "83 Christopher Street (Red Door"){
     return "83 CHristopher Street";
 } else {
@@ -160,13 +155,12 @@ if (oldAddress == "83 Christopher Street (Red Door"){
 }
 
 
-// function to clean meeting names 
+//clean meeting names 
 function fixNames(oldName) {
     oldName = oldName.replace(/\(:?I+\)/g, "").toUpperCase().trim();
     var indexed = oldName.indexOf(' -');
     var firstPart = oldName.substr(0, (indexed)).toUpperCase().trim();
     var second = oldName.substr(indexed + 3, firstPart.length).toUpperCase();
-
     var lastHalfCheck1 = firstPart.substr((firstPart.length) - 10, 10).toUpperCase();
     var firstHalfCheck1 = firstPart.substr(0, 10).toUpperCase();
     var lastHalfCheck2 = second.substr((firstPart.length) - 12, 10).toUpperCase();
@@ -205,39 +199,31 @@ for (var i in addresses) {
     cleanAdd.push(fixAddress(addresses[i]));
 }
 
-// ~~~~~~~~~ CLEANING FUNCTION END 
 
-// fs.writeFileSync("./addresses3.txt", JSON.stringify(addresses));
-
-// ~~~~~~~~~~ APIS
+/*------------call API---------*/
 
 function fixAddress(oldAddress) {
     var newAddress = oldAddress + ', New York, NY,';
     return newAddress;
 }
 
-
-
 async.forEachOfSeries(addresses, function(value, i, callback) {
     var apiRequest = 'https://maps.googleapis.com/maps/api/geocode/json?address=' + fixAddress(value).split(' ').join('+') + '&key=' + apikey;
     var thisMeeting = new Object;
     thisMeeting.address = value;
 
-    // var apiRequest = 'https://maps.googleapis.com/maps/api/geocode/json?address=' + cleanAddress + '&key=' + apikey;
-    // console.log(cleanAddress[2]);
     console.log(apiRequest);
 
     request(apiRequest, function(err, resp, body) {
         if (err) {
             console.log(body);
             throw err;
-
         }
 
-        thisMeeting.latLong = JSON.parse(body).results[0].geometry.location; //.parse indicates that its an object 
+        thisMeeting.latLong = JSON.parse(body).results[0].geometry.location; 
         meetingsData.push(thisMeeting.latLong);
-
-        //~~~~~~~~~~ WRITE TO MONGO
+        
+/*------------write to mongo database---------*/
         var url = 'mongodb://localhost:27017/AAmeetings';
 
         //retrieve
@@ -249,7 +235,6 @@ async.forEachOfSeries(addresses, function(value, i, callback) {
             var collection = db.collection('manhattan');
 
             // THIS IS WHERE THE DOCUMENT(S) WHERE INSERTED TO MONGO:
-            //commented out for search queries 
 
             collection.insert({
                 locationName: locationName[i],
@@ -278,16 +263,10 @@ async.forEachOfSeries(addresses, function(value, i, callback) {
 
             )
         }); //MongoClient.connect
-
-        //~~~~~~~~~~ WRITE TO MONGO END 
     });
     setTimeout(callback, 500);
 }, function() {
-    //console.log(meetingsData);
     fs.writeFileSync('./aaManhattanMeetings.txt', JSON.stringify(data));
 });
-
-// ~~~~~~~~~~ APIS END
-// ~~~~~~~~~CLEANING FUNCTION END
 
 fs.writeFileSync("./addresses3.txt", JSON.stringify(addresses));
