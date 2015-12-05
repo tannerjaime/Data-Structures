@@ -11,10 +11,11 @@ var d = new Date();
 var dayJS = d.getDay();
 var hourJS = d.getHours();
 var minutes = d.getMinutes();
-var minuteNow = (dayJS + hourJS + minutes) - 20;
+var minuteNow = dayJS + hourJS + minutes - 20;
 if (hourJS == 7){
-    add = -7;
+    add = -8;
 }
+var tomorrow = dayJS + add + 1;
 
 // Retrieve
 var MongoClient = require('mongodb').MongoClient; // npm install mongodb
@@ -35,12 +36,12 @@ MongoClient.connect(url, function(err, db) {
         
         $or: [{
         
-            $and: [{ "hours.day": dayJS * 1 + add },
-            { "hours.startHour": { $gt: hourJS * 1  + add - 1, $lt: 25 } } 
+            $and: [{ "hours.day": dayJS},
+            { "hours.startHour": { $gte: hourJS, $lte: 24 } } 
             ]},
         
-            { $and: [{ "hours.day": dayJS * 1 + 1 },
-            { "hours.startHour": { $gt: -1, $lt: 4 } } 
+            { $and: [{ "hours.day": tomorrow },
+            { "hours.startHour": { $gte: 0, $lt: 4 } } 
             ]}
     ]}},
         
@@ -107,10 +108,7 @@ MongoClient.connect(url, function(err, db) {
                 console.log(JSON.stringify(cleaned[i], null, 4));
                 console.log('');
             }
-            // for (var i=0; i < docs.length; i++) {
-            //     console.log(JSON.stringify(docs[i], null, 4));
-            //     console.log('');
-            // }
+
         }
         db.close();
 

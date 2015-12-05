@@ -17,20 +17,13 @@ var meetingNameClean = [];
 var meetingsData = [];
 var hoursSplit = [];
 var cleanAdd = [];
-var fileContent;
+
 // ~~~~~~~~~ SCRAPING
 
 //making request for the content
-var website = "http://www.nyintergroup.org/meetinglist/meetinglist.cfm?searchstr=&borough=M&zone=Zone&zipcode=Zip+Code&day=&StartTime=&EndTime=&meetingtype=&SpecialInterest=&Go=Go";
-request(website, function(error, response, body) { //we can expect to possiblt get an error, response, and body, derived from documentation for request
-    if (!error && response.statusCode == 200) {
-        fileContent = fs.writeFileSync('/home/ubuntu/workspace/data/allManhattanWebInfo.txt', body); // gunna write it into a text file 
-    }
-    else {
-        console.error('request failed')
-    }
-});
-        var $ = cheerio.load(fileContent);
+var fileContent = fs.readFileSync('/home/ubuntu/workspace/data/allManhattanWebInfo.txt');
+var $ = cheerio.load(fileContent);
+
 
 
 // COLUMN 1
@@ -159,12 +152,11 @@ addresses = Array.prototype.concat.apply([], addresses);
 
 function fixAddress(oldAddress) {
 
-    if (oldAddress == "83 Christopher Street (Red Door") {
-        return "83 CHristopher Street";
-    }
-    else {
-        return oldAddress;
-    }
+if (oldAddress == "83 Christopher Street (Red Door"){
+    return "83 CHristopher Street";
+} else {
+    return oldAddress;
+}
 }
 
 
@@ -264,7 +256,7 @@ async.forEachOfSeries(addresses, function(value, i, callback) {
                 meetingName: meetingNameClean[i],
                 address: thisMeeting.address,
                 addressWhole: addressesFloors[i],
-                latlong: thisMeeting.latLong,
+                latlong : thisMeeting.latLong,
                 additionalInfo: additionalInfo[i],
                 hours: hoursSplit[i],
                 accessibility: wheelChair[i]
@@ -275,7 +267,7 @@ async.forEachOfSeries(addresses, function(value, i, callback) {
                 meetingName: meetingNameClean[i],
                 address: thisMeeting.address,
                 addressWhole: addressesFloors[i],
-                latlong: thisMeeting.latLong,
+                latlong : thisMeeting.latLong,
                 additionalInfo: additionalInfo[i],
                 hours: hoursSplit[i],
                 accessibility: wheelChair[i]
@@ -292,7 +284,7 @@ async.forEachOfSeries(addresses, function(value, i, callback) {
     setTimeout(callback, 500);
 }, function() {
     //console.log(meetingsData);
-    fs.writeFileSync('./aaMeetingsArrayArea2.txt', JSON.stringify(data));
+    fs.writeFileSync('./aaManhattanMeetings.txt', JSON.stringify(data));
 });
 
 // ~~~~~~~~~~ APIS END
