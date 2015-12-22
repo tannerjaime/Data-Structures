@@ -83,10 +83,13 @@ function splitHours(tableCellString) {
         var startHour = oldHours.substr(beginFrom + 4, 3);
         var wholeTime = oldHours.substr(beginFrom + 4, 9);
         var pm = oldHours.substr(beginFrom + 10, 2);
-
+            
         startHour = parseInt(startHour);
         var days = oldHours.substring(0, beginFrom - 1);
-        if (pm == ' P' || pm == "PM") {
+        
+        if (pm == ' P' || pm == "PM" && startHour == 12){
+            var amPM = "PM";
+        }else if (pm == ' P' || pm == "PM" && startHour < 12) {
             startHour = startHour + 12;
             var amPM = "PM";
         }
@@ -169,8 +172,7 @@ function fixNames(oldName) {
     }
     return finished;
 }
-
-/*------------call API---------*/
+// /*------------call API---------*/
 
 function fixAddress(oldAddress) {
     if (oldAddress == "83 Christopher Street (Red Door"){
