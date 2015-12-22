@@ -1,11 +1,15 @@
-var http = require('http');
 var pg = require('pg');
 
 // supply connection string through an environment variable
 var conString = "postgres://jaime:parsonsdv@data-structures.cdp3q92nnmui.us-west-2.rds.amazonaws.com:5432/postgres";
 
 
-var server = http.createServer(function(req, res) {
+var app = require('http').createServer(handler);
+var io = require('socket.io')(app);
+
+app.listen(8080);
+
+function handler(req, res) {
 
     // get a pg client from the connection pool
     pg.connect(conString, function(err, client, done) {
@@ -22,7 +26,9 @@ var server = http.createServer(function(req, res) {
             if (client) {
                 done(client);
             }
-            res.writeHead(500, {'content-type': 'text/plain'});
+            res.writeHead(500, {
+                'content-type': 'text/plain'
+            });
             res.end('An error occurred');
             return true;
         };
@@ -35,14 +41,25 @@ var server = http.createServer(function(req, res) {
             console.log(result.rows);
             // handle an error from the query
             if (handleError(err)) return;
-            
+
             // return the client to the connection pool for other requests to reuse
             done();
-            res.writeHead(200, {'content-type': 'application/json'});
+            res.writeHead(200, {
+                'content-type': 'application/json'
+            });
             res.write(JSON.stringify(result.rows));
             res.end();
+
         });
     });
-});
+}
 
-server.listen(process.env.PORT);
+io.on('connection', function(socket) {
+    socket.on('buttonPress', function(data) {
+        io.emit('newData', {
+            newD: 'relay data to browser'
+        });
+        console.log('button was pressed on local client');
+        window.location.reload(true);
+    });
+});

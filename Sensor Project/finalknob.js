@@ -1,4 +1,5 @@
 var pg = require('pg');
+var socket = require('socket.io-client')('http://localhost:8080/');
 
 // add connection string here
 var conString = "postgres://jaime:parsonsdv@data-structures.cdp3q92nnmui.us-west-2.rds.amazonaws.com:5432/postgres";
@@ -9,7 +10,7 @@ board = new five.Board();
 
 board.on("ready", function() {
 
-  // Create a new `potentiometer` hardware instance.
+//board new `potentiometer` hardware instance.
   potentiometer = new five.Sensor({
     pin: "A3",
     freq: 2000
@@ -23,9 +24,11 @@ board.on("ready", function() {
   });
 
   // "data" get the current reading from the potentiometer
+  //on click button.on
   potentiometer.on("data", function() {
     console.log(this.value, this.raw);
     var number = this.value;
+    socket.emit('buttonPress', { buttonStatus : 'has been pressed'});
     pg.connect(conString, function(err, client, done) {
       if(err) {
         return console.error('error fetching client from pool', err);
