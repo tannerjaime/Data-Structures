@@ -1,5 +1,5 @@
 var fs = require('fs');
-var database = "AAmeetings"
+var database = "AAtimes"
 var collName = "manhattan";
 process.env.TZ = 'America/New_York'
 
@@ -34,7 +34,7 @@ function handler(req, res) {
             return console.dir(err);
         }
 
-        var collection = db.collection(collName)
+        var collection = db.collection(collName);
 
         // query all meetings at or after 7 on tuesdays 
         collection.aggregate([{
@@ -79,7 +79,7 @@ function handler(req, res) {
                         meetingAddress2: "$addressWhole",
                         meetingDetails: "$additionalInfo",
                         meetingWheelchair: "$accessibility",
-                        latLong: "$latlong"
+                        latLong: "$latLong"
                     },
                     meetingDay: {
                         $push: "$hours.day"
@@ -127,35 +127,12 @@ function handler(req, res) {
                 var cleaned = docs;
                 // console.log(JSON.stringify(docs));
                 for (var i = 0; i < cleaned.length; i++) {
-                    // for (var j = 0; j < cleaned[i].length; j++) {
-                    // if (cleaned[j].meetings.meetingDays == 0) {
-                    //     cleaned[j].meetings.meetingDays = "Sundays";
-                    // }
-                    // else if (cleaned[j].meetings.meetingDays == 1) {
-                    //     cleaned[j].meetings.meetingDays = "Mondays";
-                    // }
-                    // else if (cleaned[j].meetings.meetingDays == 2) {
-                    //     cleaned[j].meetings.meetingDays = "Tuesdays";
-                    // }
-                    // else if (cleaned[j].meetings.meetingDays == 3) {
-                    //     cleaned[j].meetings.meetingDays = "Wednesdays";
-                    // }
-                    // else if (cleaned[j].meetings.meetingDays == 4) {
-                    //     cleaned[j].meetings.meetingDays = "Thursdays";
-                    // }
-                    // else if (cleaned[j].meetings.meetingDays == 4) {
-                    //     cleaned[j].meetings.meetingDays = "Fridays";
-                    // }
-                    // else {
-                    //     cleaned[j].meetings.meetingDays = "Saturdays";
-                    // }
-                    // }
-                    // console.log(JSON.stringify(cleaned[i], null, 4));
-                    // console.log('');
+                    console.log(JSON.stringify(cleaned[i], null, 4));
+                    console.log('');
                 }
                 console.log(JSON.stringify(cleaned));
                 res.write(data1);
-                res.write("var meetings = " + JSON.stringify(cleaned) +";");
+                res.write("var meetings = " + JSON.stringify(cleaned) + ";");
                 res.write(data3);
                 res.end();
             }
