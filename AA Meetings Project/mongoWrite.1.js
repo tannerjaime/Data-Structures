@@ -1,4 +1,4 @@
-/*
+ /*
 AA MEETINGS OF MANHATTAN
 Jaime Tanner 
 
@@ -33,7 +33,7 @@ var cleanAdd = [];
 /*------------web scraping---------*/
 
 //making request for content
-var fileContent = fs.readFileSync('/home/ubuntu/workspace/data/allManhattanWebInfo.txt');
+var fileContent = fs.readFileSync('allManhattanWebInfo.txt');
 var $ = cheerio.load(fileContent);
 
 var obj;
