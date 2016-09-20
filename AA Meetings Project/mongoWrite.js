@@ -33,7 +33,7 @@ var cleanAdd = [];
 /*------------web scraping---------*/
 
 //making request for content
-var fileContent = fs.readFileSync('/home/ubuntu/workspace/data/allManhattanWebInfo.txt');
+var fileContent = fs.readFileSync('allManhattanWebInfo.txt');
 var $ = cheerio.load(fileContent);
 
 var obj;
@@ -176,7 +176,7 @@ function fixNames(oldName) {
 
 function fixAddress(oldAddress) {
     if (oldAddress == "83 Christopher Street (Red Door"){
-        oldAddress = "83 CHristopher Street";
+        oldAddress = "83 Christopher Street";
     }
     return oldAddress + ', New York, NY,';
 }
