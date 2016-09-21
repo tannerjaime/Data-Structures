@@ -9,10 +9,44 @@
         html,
         body,
         #map-canvas {
+            position: absolute;
             height: 100%;
+            width: 100%;
+            left: 0%;
+            top: 0%;
             margin: 0;
             padding: 0;
+            z-index: 1;
         }
+        
+        #info{
+            position: absolute;
+            width: 35%;
+            height: 14%;
+            left: 13%;
+            top: 0%;
+            z-index:1000;
+            background: #a1332b;
+            opacity: 0.9;
+            color: #fff;
+        }
+        
+        #info h1{
+            font-family: "Arial Black", Gadget, sans-serif;
+            font-size: 1.6em;
+            text-align: center;
+            height: 20%;
+        }
+        
+        #info h3{
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 0.7em;
+            text-align: center;
+            color: #e6e6e6;
+            height: 12%;
+        }
+        
+            
         
         #firstHeading {
             font-size: 100%;
